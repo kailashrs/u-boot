@@ -134,6 +134,16 @@ config USB_GADGET_DWC2_OTG_PHY
 	help
 	  Enable the DesignWare USB2.0 HS OTG physical device interface.
 
+config USB_GADGET_DWC2_OTG_CTRL_UNCACHED_ADDR
+	hex "Uncached 1 MiB section for the DWC2 SETUP buffer"
+	depends on SYS_ARM_CACHE_CP15 && !SYS_DCACHE_OFF
+	default 0x0
+	help
+	  Physical address of a free, 1 MiB-aligned RAM section. When non-zero,
+	  the driver maps this section uncached and places the EP0 SETUP buffer
+	  there instead of in cached malloc memory. Use this on SoCs where the
+	  CPU can read a stale SETUP packet from the cached buffer.
+
 config USB_GADGET_DWC2_OTG_PHY_BUS_WIDTH_8
 	bool "DesignWare USB2.0 HS OTG controller 8-bit PHY bus width"
 	help

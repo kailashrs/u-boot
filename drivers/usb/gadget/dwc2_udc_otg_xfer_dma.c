@@ -306,9 +306,8 @@ static void complete_tx(struct dwc2_udc *dev, u8 ep_num)
 			dev->ep0state = WAIT_FOR_OUT_COMPLETE;
 			dwc2_ep0_complete_out();
 		} else {
-			debug_cond(DEBUG_IN_EP,
-				"%s: ep_num = %d, invalid ep state\n",
-				__func__, ep_num);
+			printf("dwc2: EP0 IN complete in ep0state %s\n",
+			       state_names[dev->ep0state]);
 		}
 		return;
 	}
@@ -842,9 +841,14 @@ static int dwc2_ep0_write(struct dwc2_udc *dev)
 		   "%s: req = %p, req.length = 0x%x, req.actual = 0x%x\n",
 		   __func__, req, req->req.length, req->req.actual);
 
-	if (req->req.length - req->req.actual == ep0_fifo_size) {
-		/* Next write will end with the packet size, */
-		/* so we need Zero-length-packet */
+	if (req->req.length - req->req.actual == ep0_fifo_size &&
+	    req->req.zero) {
+		/*
+		 * The data stage ends on a packet boundary but is shorter
+		 * than wLength, so the host needs a ZLP to end it. When the
+		 * reply fills wLength exactly, the host moves straight to the
+		 * status stage and never sends the IN token for a ZLP.
+		 */
 		need_zlp = 1;
 	}
 
@@ -1449,9 +1453,8 @@ static void dwc2_handle_ep0(struct dwc2_udc *dev)
 		dwc2_ep0_setup(dev);
 
 	} else {
-		debug_cond(DEBUG_OUT_EP != 0,
-			   "%s: strange state!!(state = %s)\n",
-			__func__, state_names[dev->ep0state]);
+		printf("dwc2: SETUP dropped in ep0state %s\n",
+		       state_names[dev->ep0state]);
 	}
 }
 

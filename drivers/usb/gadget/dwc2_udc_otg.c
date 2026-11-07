@@ -22,6 +22,8 @@
 #include <generic-phy.h>
 #include <log.h>
 #include <malloc.h>
+#include <asm/system.h>
+#include <linux/sizes.h>
 #include <reset.h>
 #include <dm/device_compat.h>
 #include <dm/devres.h>
@@ -943,9 +945,16 @@ int dwc2_udc_probe(struct dwc2_plat_otg_data *pdata)
 	for (i = 1; i < DWC2_MAX_ENDPOINTS; i++)
 		usb_ep_set_maxpacket_limit(&dev->ep[i].ep, EP_FIFO_SIZE);
 
+#if defined(CONFIG_USB_GADGET_DWC2_OTG_CTRL_UNCACHED_ADDR) && \
+	CONFIG_USB_GADGET_DWC2_OTG_CTRL_UNCACHED_ADDR
+	mmu_set_region_dcache_behaviour(CONFIG_USB_GADGET_DWC2_OTG_CTRL_UNCACHED_ADDR,
+					SZ_1M, DCACHE_OFF);
+	usb_ctrl = (struct usb_ctrlrequest *)CONFIG_USB_GADGET_DWC2_OTG_CTRL_UNCACHED_ADDR;
+#else
 	usb_ctrl = memalign(CONFIG_SYS_CACHELINE_SIZE,
 			    ROUND(sizeof(struct usb_ctrlrequest),
 				  CONFIG_SYS_CACHELINE_SIZE));
+#endif
 	if (!usb_ctrl) {
 		pr_err("No memory available for UDC!\n");
 		return -ENOMEM;
