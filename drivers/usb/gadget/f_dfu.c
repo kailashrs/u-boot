@@ -242,7 +242,7 @@ static int handle_upload(struct usb_request *req, u16 len)
 	struct f_dfu *f_dfu = req->context;
 
 	return dfu_read(dfu_get_entity(f_dfu->altsetting), req->buf,
-			req->length, f_dfu->blk_seq_num);
+			len, f_dfu->blk_seq_num);
 }
 
 static int handle_dnload(struct usb_gadget *gadget, u16 len)
@@ -345,6 +345,7 @@ static int state_dfu_idle(struct f_dfu *f_dfu,
 		}
 		break;
 	case USB_REQ_DFU_ABORT:
+		dfu_transaction_cleanup(dfu_get_entity(f_dfu->altsetting));
 		/* no zlp? */
 		value = RET_ZLP;
 		break;
@@ -442,6 +443,7 @@ static int state_dfu_dnload_idle(struct f_dfu *f_dfu,
 		}
 		break;
 	case USB_REQ_DFU_ABORT:
+		dfu_transaction_cleanup(dfu_get_entity(f_dfu->altsetting));
 		f_dfu->dfu_state = DFU_STATE_dfuIDLE;
 		value = RET_ZLP;
 		break;
@@ -535,6 +537,7 @@ static int state_dfu_upload_idle(struct f_dfu *f_dfu,
 		}
 		break;
 	case USB_REQ_DFU_ABORT:
+		dfu_transaction_cleanup(dfu_get_entity(f_dfu->altsetting));
 		f_dfu->dfu_state = DFU_STATE_dfuIDLE;
 		/* no zlp? */
 		value = RET_ZLP;
@@ -569,6 +572,7 @@ static int state_dfu_error(struct f_dfu *f_dfu,
 		value = handle_getstate(req);
 		break;
 	case USB_REQ_DFU_CLRSTATUS:
+		dfu_transaction_cleanup(dfu_get_entity(f_dfu->altsetting));
 		f_dfu->dfu_state = DFU_STATE_dfuIDLE;
 		f_dfu->dfu_status = DFU_STATUS_OK;
 		/* no zlp? */
@@ -625,8 +629,15 @@ dfu_handle(struct usb_function *f, const struct usb_ctrlrequest *ctrl)
 			value = min(len, (u16) sizeof(dfu_func));
 			memcpy(req->buf, &dfu_func, value);
 		}
-	} else /* DFU specific request */
-		value = dfu_state[f_dfu->dfu_state] (f_dfu, ctrl, gadget, req);
+	} else { /* DFU specific request */
+		u8 state = f_dfu->dfu_state;
+
+		value = dfu_state[state] (f_dfu, ctrl, gadget, req);
+		if (value < 0)
+			printf("dfu: req %d state %d wValue %u len %u -> %d (state %d)\n",
+			       ctrl->bRequest, state, w_value, len, value,
+			       f_dfu->dfu_state);
+	}
 
 	if (value >= 0) {
 		req->length = value > DFU_USB_BUFSIZ ? DFU_USB_BUFSIZ : value;
@@ -790,6 +801,8 @@ static int dfu_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 	debug("%s: intf:%d alt:%d\n", __func__, intf, alt);
 
 	f_dfu->altsetting = alt;
+	if (dfu_get_entity(alt))
+		dfu_transaction_cleanup(dfu_get_entity(alt));
 	f_dfu->dfu_state = DFU_STATE_dfuIDLE;
 	f_dfu->dfu_status = DFU_STATUS_OK;
 

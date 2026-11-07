@@ -22,7 +22,8 @@ static int dfu_transfer_medium_ram(enum dfu_op op, struct dfu_entity *dfu,
 		return  -EINVAL;
 	}
 
-	if (offset > dfu->data.ram.size) {
+	if (offset > dfu->data.ram.size || *len < 0 ||
+	    *len > dfu->data.ram.size - offset) {
 		pr_err("request exceeds allowed area\n");
 		return -EINVAL;
 	}
