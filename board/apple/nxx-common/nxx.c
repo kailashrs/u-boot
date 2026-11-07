@@ -25,7 +25,7 @@ __weak int board_init(void)
 	return 0;
 }
 
-void set_dfu_alt_info(char *interface, char *devstr)
+__weak void set_dfu_alt_info(char *interface, char *devstr)
 {
 	char buf[96];
 	ulong start;

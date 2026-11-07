@@ -1,12 +1,23 @@
 if S5L8720
 
+choice
+	prompt "S5L8720 board"
+	default TARGET_N58S
+
 config TARGET_N58S
 	bool "Apple N58s - iPod nano (4th generation)"
-	default y
 	help
 	  Apple iPod nano (4th generation) is a digital audio player, introduced in
 	  September 2008. It has a NAND flash of either 8 or 16 GiB.
 
+config TARGET_N72
+	bool "Apple N72AP - iPod touch (2nd generation)"
+	help
+	  RAM-loaded U-Boot for the Apple iPod touch (2nd generation).
+
+endchoice
+
 source "board/apple/n58s/Kconfig"
+source "board/apple/n72/Kconfig"
 
 endif

@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: GPL-2.0+ OR MIT
+
+/dts-v1/;
+
+#include "s5l8720.dtsi"
+#include "s5l87xx-nxx.dtsi"
+
+/ {
+	compatible = "apple,n72", "samsung,s5l8720", "apple,arm-platform";
+	model = "Apple iPod touch (2nd generation)";
+};
+
+&memory {
+	/* Limit U-Boot to the lower 48 MiB of the iBSS SDRAM mapping. */
+	reg = <0x08000000 0x03000000>;
+};
+
+&clkref {
+	clock-frequency = <24000000>;
+};
