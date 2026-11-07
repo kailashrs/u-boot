@@ -18,7 +18,8 @@ void set_dfu_alt_info(char *interface, char *devstr)
 	 * There is no serial console on N72AP, so expose the recorded console
 	 * output as a read-only "log" alternate that can be uploaded over DFU.
 	 */
-	console_record_reset_enable();
+	/* Keep what was recorded during boot, including driver messages. */
+	gd->flags |= GD_FLG_RECORD;
 	snprintf(buf, sizeof(buf), "%s;log ram 0x%lx 0x%lx", payload,
 		 (ulong)gd->console_out.start,
 		 (ulong)(gd->console_out.end - gd->console_out.start));

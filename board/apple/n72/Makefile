@@ -4,3 +4,4 @@
 obj-y += ../n58s/n58s.o
 obj-y += ../nxx-common/nxx.o
 obj-y += n72.o
+obj-$(CONFIG_VIDEO) += display.o
