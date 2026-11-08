@@ -17,7 +17,7 @@ CONFIG_DEBUG_UART=y
 CONFIG_STACK_SIZE=0x00100000
 CONFIG_BOOTDELAY=0
 CONFIG_USE_BOOTCOMMAND=y
-CONFIG_BOOTCOMMAND="dfu 0 ram 0; if iminfo 0x09000000; then bootm 0x09000000; else dcache off; icache off; go 0x09000000; fi"
+CONFIG_BOOTCOMMAND="dfu 0 ram 0; if iminfo 0x09000000; then echo n72: bootm start; bootm start 0x09000000 && echo n72: loados && bootm loados && echo n72: ramdisk && bootm ramdisk && echo n72: fdt && bootm fdt && echo n72: prep && bootm prep && echo n72: ready, detach again to start the kernel && dfu 0 ram 0 && echo n72: go && bootm go; echo n72: bootm stopped; dfu 0 ram 0; else dcache off; icache off; go 0x09000000; fi"
 # CONFIG_BOOTSTD is not set
 CONFIG_BOARD_EARLY_INIT_F=y
 CONFIG_CMD_DFU=y
@@ -49,3 +49,4 @@ CONFIG_FIT=y
 CONFIG_CMD_BOOTM=y
 CONFIG_CMD_IMI=y
 # CONFIG_ARCH_FIXUP_FDT_MEMORY is not set
+CONFIG_HUSH_PARSER=y
